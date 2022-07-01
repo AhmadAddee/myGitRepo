@@ -2,9 +2,13 @@ package company.com.userView;
 
 public interface IDietician {
 
-    void createRecipe();
+    void viewRecipePool();
 
     void viewRecipe();
 
-    void viewRecipePool();
+    void createRecipe();
+
+    void editARecipe();
+
+
 }

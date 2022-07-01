@@ -1,38 +1,109 @@
-package company.com.model;
+package company.com.model.implementations;
 
+import company.com.model.interfaces.IRecipe;
+import company.com.model.interfaces.IRecipePool;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class RecipePool implements Iterable<Recipe>{
-    private List<Recipe> allRecipes;
+public class RecipePool implements Iterable<Recipe>, IRecipePool {
+    private final List<IRecipe> allRecipes;
+
+    private File file;
 
     public RecipePool() {
         allRecipes = new ArrayList<>();
         createRecipeSamples();
     }
 
-    public void addRecipe(String meal){
-        Recipe recipe = new Recipe(meal, allRecipes.size());
-        allRecipes.add(recipe);
+    @Override
+    public void addRecipe(String meal, List<String> ingredients, List<String> steps){
+        addRecipe(meal, ingredients, steps, null);
     }
 
     @Override
-    public Iterator iterator() {
-        return allRecipes.iterator();
+    public void addRecipe(String meal, List<String> ingredients, List<String> steps, String tag){
+        allRecipes.add(new Recipe(meal, allRecipes.size(), ingredients, steps, tag));
     }
 
-    public boolean updateRecipeCount(int recipeId){
+    public boolean updateRecipeCount(int id){
         return false;
     }
 
     @Override
+    public Iterator iterator() {
+        Iterator<IRecipe> itrCopy = allRecipes.iterator();
+        return itrCopy;
+    }
+
+    @Override
+    public void addIngredients(List<String> ingredients, int id){
+        validateRecipeId(id);
+        for (String str : ingredients){
+            allRecipes.get(id - 1).addIngredient(str);
+        }
+    }
+
+    @Override
+    public void addStep(List<String> steps, int id) {
+        validateRecipeId(id);
+        for (String str : steps){
+            allRecipes.get(id - 1).addStep(str);
+        }
+    }
+
+    @Override
+    public void setTag(String tag, int id) {
+        validateRecipeId(id);
+        allRecipes.get(id - 1).setTag(tag);
+    }
+
+    @Override
+    public String getMeal(int id) {
+        validateRecipeId(id);
+        return allRecipes.get(id - 1).getMeal();
+    }
+
+    @Override
+    public IRecipe getRecipe(int id){
+        validateRecipeId(id);
+        return allRecipes.get(id - 1);
+    }
+
+    @Override
+    public String getTag(int id){
+        validateRecipeId(id);
+        return allRecipes.get(id - 1).getTag();
+    }
+
+    @Override
+    public int getNoOfRecipes(){
+        return allRecipes.size();
+    }
+
+    @Override
+    public List<String> getIngredients(int id) {
+        validateRecipeId(id);
+        return allRecipes.get(id - 1).getIngredients();
+    }
+
+    @Override
+    public List<String> getSteps(int id) {
+        validateRecipeId(id);
+        return allRecipes.get(id - 1).getSteps();
+    }
+
+    private void validateRecipeId(int id){
+        if (id > allRecipes.size())
+            throw new IllegalStateException();
+    }
+
+    @Override
     public String toString() {
-        StringBuilder sB = new StringBuilder("\n\t=== Recipe Pool ===\n");
-        for (Recipe r : allRecipes){
-            sB.append("\n\n" + r.getId()+1 + " ");
-            if (!(r.getTag() == null))
-                sB.append(r.getTag() + " ");
+        StringBuilder sB = new StringBuilder("\n\t=== Recipe Pool ===");
+        for (IRecipe r : allRecipes){
             sB.append(r.toString());
         }
         return sB.toString();
@@ -44,7 +115,7 @@ public class RecipePool implements Iterable<Recipe>{
 
 
     private void createRecipeSamples(){
-        Recipe butterChicken = new Recipe("Butter chicken", allRecipes.size());
+        IRecipe butterChicken = new Recipe("Butter chicken", allRecipes.size());
         butterChicken.addIngredient("500g skinless boneless chicken thighs");
         butterChicken.addIngredient("1 lemon, juiced");
         butterChicken.addIngredient("2 tsp ground cumin");
@@ -59,7 +130,7 @@ public class RecipePool implements Iterable<Recipe>{
         butterChicken.addStep("Add the spices with the tomato purée, cook for a further 2 mins until fragrant, then add the stock and marinated chicken.");
         butterChicken.addStep("Cook for 15 mins, then add any remaining marinade left in the bowl. Simmer for 5 mins, then sprinkle with the toasted almonds. Serve with rice, naan bread, chutney, coriander and lime wedges, if you like.");
         allRecipes.add(butterChicken);
-        Recipe lasagne = new Recipe("Lasagne", allRecipes.size());
+        IRecipe lasagne = new Recipe("Lasagne", allRecipes.size());
         lasagne.addIngredient("1 tbsp olive oil");
         lasagne.addIngredient("2 rashers smoked streaky bacon");
         lasagne.addIngredient("1 onion , finely chopped");
@@ -76,7 +147,7 @@ public class RecipePool implements Iterable<Recipe>{
         lasagne.addStep("Put the crème fraîche in a bowl and mix with 2 tbsp water to loosen it and make a smooth pourable sauce. Pour this over the top of the pasta, then top with the mozzarella. ");
         lasagne.addStep("Sprinkle Parmesan over the top and bake for 25–30 mins until golden and bubbling. Serve scattered with basil, if you like.");
         allRecipes.add(lasagne);
-        Recipe pancakes = new Recipe("Pancakes", allRecipes.size());
+        IRecipe pancakes = new Recipe("Pancakes", allRecipes.size());
         pancakes.addIngredient("100g plain flour");
         pancakes.addIngredient("2 large eggs");
         pancakes.addIngredient("300ml milk");
@@ -89,8 +160,8 @@ public class RecipePool implements Iterable<Recipe>{
         pancakes.addStep("Serve with lemon wedges and caster sugar, or your favourite filling.");
         pancakes.addStep("Once cold, you can layer the pancakes between baking parchment, then wrap in cling film and freeze for up to 2 months.");
         allRecipes.add(pancakes);
-        Recipe vegLasagne = new Recipe("Lasagne", allRecipes.size());
-        vegLasagne.setTag("Vegetarian ");
+        IRecipe vegLasagne = new Recipe("Lasagne", allRecipes.size());
+        vegLasagne.setTag("Vegetarian");
         vegLasagne.addIngredient("3 red peppers, cut into large chunks");
         vegLasagne.addIngredient("300g lasagne sheets");
         vegLasagne.addIngredient("125g mozzarella");
@@ -101,7 +172,7 @@ public class RecipePool implements Iterable<Recipe>{
         vegLasagne.addStep("Toss with the olive oil, season well, then roast for 25 mins until lightly browned.");
         vegLasagne.addStep("Bake for 45 mins until bubbling and golden.");
         allRecipes.add(vegLasagne);
-        Recipe meatballs = new Recipe("Meatballs", allRecipes.size());
+        IRecipe meatballs = new Recipe("Meatballs", allRecipes.size());
         meatballs.addIngredient("300g good-quality pork sausage");
         meatballs.addIngredient("1 small onion");
         meatballs.addIngredient("1 carrot");
@@ -114,5 +185,33 @@ public class RecipePool implements Iterable<Recipe>{
         meatballs.addStep("Get the child to squish everything together through their hands until completely mixed.");
         meatballs.addStep("It’s ready to eat now or cool and freeze in suitable batches for up to 6 months. Serve with spaghetti, some basil and extra Parmesan, if you like.");
         allRecipes.add(meatballs);
+        IRecipe sample6 = new Recipe("Sample recipe six", allRecipes.size());
+        sample6.addIngredient("blablabla ingredients");
+        sample6.addIngredient("1 small blablabla ingredients");
+        sample6.addIngredient("1 blablabla ingredients");
+        sample6.addIngredient("1 tbsp blablabla ingredients oregano");
+        sample6.addIngredient("1 tbsp blablabla ingredients oil");
+        sample6.addStep("Get your child to squeeze all the sausagemeat oblablabla ingredientsbowl.");
+        sample6.addStep("Get your child to coarsely grate the onion and finely grblablabla ingredientseir eyes, get them to wear goggles, which is good fun.");
+        sample6.addStep("ip these vegetables in with the sausages. Whileblablabla ingreblablabla ingredientsl the other meatball ingredients one by one, except the olive oil, into the bowl and season with black pepper.");
+        sample6.addStep("Get the child to squish everything blablabla ingredientsgh their hands until completely mixed.");
+        sample6.addStep("It’s ready to eat now or cool blablabla ingredientsith spaghetti, some basil and extra Parmesan, if you like.");
+        allRecipes.add(sample6);
+        IRecipe sample7 = new Recipe("Sample recipe seven", allRecipes.size());
+        sample7.addIngredient("1 carrot");
+        sample7.addIngredient("1 tbsp dried oregano");
+        sample7.addIngredient("1 tbsp olive oil");
+        sample7.addStep("Get your child to squeeze all the sausagemeat out of the skins into a large bowl.");
+        sample7.addStep("ip these vegetables in with the sausages. While you have the grater out, grate the Parmesan, other vegetables and garlic for the sauce, and set aside.");
+        sample7.addStep("Next, get your child to add all the other meatball ingredients one by one, except the olive oil, into the bowl and season with black pepper.");
+        sample7.addStep("Get the child to squish everything together through their hands until completely mixed.");
+        allRecipes.add(sample7);
+        IRecipe sample8 = new Recipe("Sample recipe eight", allRecipes.size());
+        sample8.addIngredient("300g good-quality pork sausage");
+        sample8.addIngredient("1 small onion");
+        sample8.addStep("Get the child to squish everything together through their hands until completely mixed.");
+        sample8.addStep("It’s ready to eat now or cool and freeze in suitable batches for up to 6 months. Serve with spaghetti, some basil and extra Parmesan, if you like.");
+        allRecipes.add(sample8);
+
     }
 }
